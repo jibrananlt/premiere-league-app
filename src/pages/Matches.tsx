@@ -2,9 +2,10 @@ import { useEffect, useState, useRef } from 'react';
 import { Calendar, CheckCircle, Plus, Clock, ChevronDown, MapPin } from 'lucide-react';
 import { apiClient } from '../api/client';
 import Modal from '../components/Modal';
+import LoadingSpinner from '../components/LoadingSpinner';
 import type { Match, Team } from '../types';
 
-// --- KOMPONEN CUSTOM SELECT ---
+// --- 1. DEFINISI INTERFACE (WAJIB ADA DI ATAS) ---
 interface CustomSelectProps {
   label: string;
   options: Team[];
@@ -13,10 +14,11 @@ interface CustomSelectProps {
   placeholder?: string;
 }
 
+// --- 2. KOMPONEN CUSTOM SELECT ---
 const CustomSelect = ({ label, options, value, onChange, placeholder = "Select Club" }: CustomSelectProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
-  const selectedTeam = options.find(t => t.id.toString() === value.toString());
+  const selectedTeam = options.find((t) => t.id.toString() === value.toString());
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -39,7 +41,7 @@ const CustomSelect = ({ label, options, value, onChange, placeholder = "Select C
           {selectedTeam ? (
             <>
               <div className="w-6 h-6 bg-white rounded-full flex items-center justify-center p-0.5 flex-shrink-0">
-                {selectedTeam.logo && <img src={selectedTeam.logo} className="w-full h-full object-contain"/>}
+                {selectedTeam.logo && <img src={selectedTeam.logo} className="w-full h-full object-contain" alt={selectedTeam.name}/>}
               </div>
               <span className="text-white font-bold text-sm truncate">{selectedTeam.name}</span>
             </>
@@ -64,7 +66,7 @@ const CustomSelect = ({ label, options, value, onChange, placeholder = "Select C
               `}
             >
               <div className="w-8 h-8 bg-white rounded-full flex items-center justify-center p-1 flex-shrink-0">
-                 {team.logo && <img src={team.logo} className="w-full h-full object-contain"/>}
+                 {team.logo && <img src={team.logo} className="w-full h-full object-contain" alt={team.name}/>}
               </div>
               <span className={`text-sm font-bold ${value.toString() === team.id.toString() ? 'text-pl-cyan' : 'text-white'}`}>
                 {team.name}
@@ -77,17 +79,19 @@ const CustomSelect = ({ label, options, value, onChange, placeholder = "Select C
   );
 };
 
-// --- HALAMAN MATCHES ---
+// --- 3. HALAMAN MATCHES ---
 
 export default function Matches() {
   const [matches, setMatches] = useState<Match[]>([]);
   const [teams, setTeams] = useState<Team[]>([]);
+  const [loading, setLoading] = useState(true);
   
   const [schedule, setSchedule] = useState({ homeTeamId: '', awayTeamId: '', date: '' });
   const [editingId, setEditingId] = useState<number | null>(null);
   const [score, setScore] = useState({ homeScore: 0, awayScore: 0 });
 
   const [isScheduleModalOpen, setIsScheduleModalOpen] = useState(false);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [alertModal, setAlertModal] = useState({ isOpen: false, type: 'success' as any, title: '', message: '' });
 
   const fetchData = async () => {
@@ -98,7 +102,11 @@ export default function Matches() {
       ]);
       setMatches(resMatches.data);
       setTeams(resTeams.data);
-    } catch (error) { console.error(error); }
+    } catch (error) { 
+        console.error(error); 
+    } finally {
+        setLoading(false);
+    }
   };
 
   useEffect(() => { fetchData(); }, []);
@@ -106,15 +114,15 @@ export default function Matches() {
   const handleSchedule = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // --- VALIDASI: Cek apakah Home Team dan Away Team sama ---
+    // Validasi: Tim tidak boleh sama
     if (schedule.homeTeamId === schedule.awayTeamId) {
         setAlertModal({ 
             isOpen: true, 
             type: 'danger', 
             title: 'Invalid Selection', 
-            message: 'Home Team and Away Team cannot be the same club. Please select different teams.' 
+            message: 'Home Team and Away Team cannot be the same club.' 
         });
-        return; // Hentikan proses jika sama
+        return;
     }
 
     try {
@@ -137,6 +145,8 @@ export default function Matches() {
         setAlertModal({ isOpen: true, type: 'danger', title: 'Error', message: 'Failed to update score.' });
     }
   };
+
+  if (loading) return <LoadingSpinner />;
 
   return (
     <div className="min-h-screen bg-pl-dark pt-24 md:pt-32 pb-28 md:pb-24 px-6 bg-[radial-gradient(circle_at_top_left,_var(--tw-gradient-stops))] from-[#2c0030] to-pl-dark">
@@ -165,7 +175,6 @@ export default function Matches() {
         {/* Matches List */}
         <div className="space-y-3 md:space-y-4">
            {matches.map((match) => {
-             // Ambil data stadium
              const homeClubInfo = teams.find(t => t.id === match.homeTeamId);
              const stadiumName = homeClubInfo?.stadium || 'Stadium Unknown';
 
@@ -194,7 +203,7 @@ export default function Matches() {
                    {/* Home Team */}
                    <div className="flex flex-col md:flex-row items-center md:justify-end gap-2 text-center md:text-right">
                         <div className="md:order-2 w-10 h-10 md:w-12 md:h-12 bg-white rounded-full flex items-center justify-center p-1 shadow-lg">
-                            {match.homeTeam.logo ? <img src={match.homeTeam.logo} className="w-full h-full object-contain"/> : <div className="w-full h-full bg-gray-200 rounded-full"/>}
+                            {match.homeTeam.logo ? <img src={match.homeTeam.logo} className="w-full h-full object-contain" alt={match.homeTeam.name}/> : <div className="w-full h-full bg-gray-200 rounded-full"/>}
                         </div>
                         <span className="text-xs md:text-lg font-bold text-white md:order-1 leading-tight line-clamp-2">
                             {match.homeTeam.name}
@@ -233,7 +242,7 @@ export default function Matches() {
                    {/* Away Team */}
                    <div className="flex flex-col md:flex-row items-center md:justify-start gap-2 text-center md:text-left">
                         <div className="w-10 h-10 md:w-12 md:h-12 bg-white rounded-full flex items-center justify-center p-1 shadow-lg">
-                            {match.awayTeam.logo ? <img src={match.awayTeam.logo} className="w-full h-full object-contain"/> : <div className="w-full h-full bg-gray-200 rounded-full"/>}
+                            {match.awayTeam.logo ? <img src={match.awayTeam.logo} className="w-full h-full object-contain" alt={match.awayTeam.name}/> : <div className="w-full h-full bg-gray-200 rounded-full"/>}
                         </div>
                         <span className="text-xs md:text-lg font-bold text-white leading-tight line-clamp-2">
                             {match.awayTeam.name}
@@ -274,6 +283,7 @@ export default function Matches() {
             type="form"
         >
             <form onSubmit={handleSchedule} className="flex flex-col gap-5 mt-2">
+                {/* Custom Team Selectors */}
                 <div className="grid grid-cols-1 gap-4">
                     <CustomSelect 
                         label="Home Team"
@@ -296,6 +306,7 @@ export default function Matches() {
                     />
                 </div>
 
+                {/* Custom Styled Date Picker */}
                 <div>
                     <label className="text-[10px] font-bold uppercase text-pl-gray mb-2 block tracking-wider">Date & Kick Off</label>
                     <div className="relative">

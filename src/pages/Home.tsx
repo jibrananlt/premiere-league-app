@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { apiClient } from '../api/client';
 import StandingsTable from '../components/StandingsTable';
 import MatchCard from '../components/MatchCard';
+import LoadingSpinner from '../components/LoadingSpinner'; // Import Spinner
 import { ChevronRight, ArrowRight, Activity, Trophy } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import type { Standing, Match } from '../types';
@@ -24,7 +25,6 @@ export default function Home() {
 
         setStandings(standingsData);
 
-        // --- LOGIKA STADIUM: Gabungkan Stadium dari Standings ke Matches ---
         const enrichedMatches = matchesData.map((match: any) => {
             const homeTeamInfo = standingsData.find((s: any) => s.team.id === match.homeTeamId)?.team;
             return {
@@ -36,37 +36,27 @@ export default function Home() {
             };
         });
 
-        // Sort match by date descending (newest first)
         const sortedMatches = enrichedMatches.sort((a: Match, b: Match) => new Date(b.date).getTime() - new Date(a.date).getTime());
         setRecentMatches(sortedMatches.slice(0, 4));
       } catch (error) {
         console.error("Error", error);
       } finally {
-        setLoading(false);
+        // Sedikit delay buatan (500ms) agar spinner sempat terlihat smooth (opsional)
+        setTimeout(() => setLoading(false), 500);
       }
     };
     fetchData();
   }, []);
 
-  if (loading) return (
-    <div className="min-h-screen bg-pl-dark flex flex-col justify-center items-center gap-4">
-      <div className="w-12 h-12 border-4 border-pl-cyan border-t-transparent rounded-full animate-spin"></div>
-      <span className="text-pl-cyan font-bold tracking-widest animate-pulse">LOADING DATA...</span>
-    </div>
-  );
+  if (loading) return <LoadingSpinner />; // Ganti loading lama dengan Component Baru
 
   return (
-    // Padding responsif: pb-28 untuk mobile (supaya tidak ketutup bottom nav), md:pb-12 untuk desktop
     <main className="min-h-screen pt-20 md:pt-24 pb-28 md:pb-12 px-4 sm:px-6 bg-pl-dark bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-pl-primary via-pl-dark to-pl-dark">
-      
-      {/* Hero Banner - Ukuran Dikembalikan Lebih Besar */}
+      {/* ... (SISA KODE SAMA SEPERTI SEBELUMNYA) ... */}
+      {/* Hero Banner */}
       <div className="max-w-7xl mx-auto mb-12 relative group">
         <div className="absolute -inset-1 bg-gradient-to-r from-pl-cyan via-pl-pink to-pl-primary rounded-[2.5rem] blur opacity-25 group-hover:opacity-50 transition duration-1000"></div>
-        
-        {/* Padding diperbesar ke p-8 md:p-16 agar terlihat megah */}
         <div className="relative bg-[#2c0030] rounded-[2.5rem] p-8 md:p-16 overflow-hidden border border-white/10 shadow-2xl">
-          
-          {/* Decorative BG */}
           <div className="absolute top-0 right-0 w-1/2 h-full bg-[url('https://resources.premierleague.com/premierleague/photo/2022/08/03/a9e5d394-4079-4343-867d-366e75d638f2/PL-Lion-Graphic-2.png')] bg-contain bg-no-repeat bg-right-top opacity-10 mix-blend-screen pointer-events-none"></div>
           <div className="absolute -bottom-24 -left-24 w-64 h-64 bg-pl-cyan/20 rounded-full blur-3xl"></div>
 
@@ -74,17 +64,13 @@ export default function Home() {
             <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/5 border border-white/10 text-pl-cyan text-xs font-black tracking-[0.2em] uppercase mb-6 hover:bg-white/10 transition-colors cursor-default">
               <span className="w-2 h-2 rounded-full bg-pl-pink animate-pulse"></span> Live Season 2025/26
             </div>
-            
-            {/* Ukuran Font Judul Diperbesar */}
             <h1 className="text-5xl md:text-7xl font-black text-white tracking-tighter mb-6 leading-[0.95]">
               THE WORLD'S <br/>
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-pl-cyan to-white">BEST LEAGUE</span>
             </h1>
-            
             <p className="text-pl-gray text-base md:text-lg max-w-xl mb-10 leading-relaxed font-medium">
               Experience the thrill of the Premier League. Access comprehensive match data, live standings, and club insights in one premium dashboard.
             </p>
-            
             <div className="flex flex-wrap gap-4">
               <Link to="/matches" className="group/btn relative px-8 py-4 bg-pl-cyan text-pl-primary rounded-xl font-black overflow-hidden transition-all hover:scale-105 hover:shadow-[0_0_20px_rgba(0,255,133,0.4)] text-sm md:text-base">
                 <span className="relative z-10 flex items-center gap-2">
@@ -101,8 +87,6 @@ export default function Home() {
       </div>
 
       <div className="max-w-7xl mx-auto grid grid-cols-1 xl:grid-cols-3 gap-10">
-        
-        {/* Left Column: Standings */}
         <div className="xl:col-span-2 space-y-6">
           <div className="flex items-center justify-between px-2">
             <h3 className="text-2xl font-black text-white tracking-tight flex items-center gap-3">
@@ -113,7 +97,6 @@ export default function Home() {
           <StandingsTable data={standings} />
         </div>
 
-        {/* Right Column: Match Center */}
         <div className="space-y-6">
           <div className="flex justify-between items-end px-2 border-b border-white/5 pb-4">
              <div>
@@ -138,7 +121,6 @@ export default function Home() {
             )}
           </div>
 
-          {/* Promo Banner Small */}
           <div className="bg-gradient-to-br from-pl-pink to-purple-600 rounded-2xl p-6 text-white shadow-lg mt-8 relative overflow-hidden group cursor-pointer hover:scale-[1.02] transition-transform">
             <div className="absolute top-0 right-0 p-3 opacity-20 group-hover:opacity-40 transition-opacity">
               <Trophy size={80} />
@@ -150,7 +132,6 @@ export default function Home() {
             </Link>
           </div>
         </div>
-
       </div>
     </main>
   );
