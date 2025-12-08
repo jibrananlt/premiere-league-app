@@ -1,6 +1,6 @@
 import { useEffect, useState, useMemo } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { Plus, Trash2, ArrowLeft, Shield, User, Shirt, Users } from 'lucide-react';
+import { Plus, Trash2, ArrowLeft, Shield, User, Shirt, Users, Heart } from 'lucide-react';
 import { apiClient } from '../api/client';
 import Modal from '../components/Modal';
 import LoadingSpinner from '../components/LoadingSpinner'; // Import
@@ -43,6 +43,7 @@ export default function TeamDetail() {
   const [team, setTeam] = useState<Team | null>(null);
   const [newPlayer, setNewPlayer] = useState({ name: '', number: '', position: 'FW' });
   const [loading, setLoading] = useState(true); // Tambah state loading
+  const [isFavorite, setIsFavorite] = useState(false);
 
   // Modal State
   const [modal, setModal] = useState({ isOpen: false, type: 'info' as any, title: '', message: '', onConfirm: () => {} });
@@ -55,6 +56,10 @@ export default function TeamDetail() {
     try {
       const res = await apiClient.get(`/teams/${id}`);
       setTeam(res.data);
+      
+      // Check if team is in favorites
+      const favorites = JSON.parse(localStorage.getItem('favoriteTeams') || '[]');
+      setIsFavorite(favorites.includes(parseInt(id)));
     } catch (error) { console.error(error); }
     finally { setLoading(false); } // Set loading false
   };
@@ -84,6 +89,22 @@ export default function TeamDetail() {
         } catch (error) { showModal('danger', 'Error', 'Failed to remove player.'); }
       }
     );
+  };
+
+  const toggleFavorite = () => {
+    if (!id) return;
+    const favorites = JSON.parse(localStorage.getItem('favoriteTeams') || '[]');
+    const teamIdNum = parseInt(id);
+    
+    const newFavorites = isFavorite
+      ? favorites.filter((favId: number) => favId !== teamIdNum)
+      : [...favorites, teamIdNum];
+    
+    localStorage.setItem('favoriteTeams', JSON.stringify(newFavorites));
+    setIsFavorite(!isFavorite);
+    
+    showModal('success', isFavorite ? 'Removed from Favorites' : 'Added to Favorites', 
+      isFavorite ? 'This team has been removed from your favorites.' : 'This team has been added to your favorites!');
   };
 
   const { startingXI, substitutes } = useMemo(() => {
@@ -175,10 +196,24 @@ export default function TeamDetail() {
             <div className="lg:col-span-1 space-y-6 order-1 lg:order-2">
                 <div className="bg-[#240026] p-5 md:p-6 rounded-3xl border border-white/5 flex items-center gap-4 md:gap-5 shadow-lg relative overflow-hidden group">
                     <div className="absolute top-0 right-0 w-32 h-32 bg-pl-cyan/5 rounded-full blur-2xl -mr-10 -mt-10 group-hover:bg-pl-cyan/10 transition-colors"></div>
+                    
+                    {/* Favorite Button */}
+                    <button
+                      onClick={toggleFavorite}
+                      className={`absolute top-4 right-4 z-10 p-2.5 rounded-xl transition-all ${
+                        isFavorite
+                          ? 'bg-pink-500 text-white shadow-lg shadow-pink-500/30'
+                          : 'bg-white/10 text-white/50 hover:bg-pink-500/30 hover:text-pink-400'
+                      }`}
+                      title={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
+                    >
+                      <Heart size={18} fill={isFavorite ? 'currentColor' : 'none'} strokeWidth={2.5} />
+                    </button>
+                    
                     <div className="w-16 h-16 md:w-20 md:h-20 p-2 md:p-3 bg-white rounded-2xl flex items-center justify-center shadow-lg relative z-10 group-hover:scale-105 transition-transform">
                         {team.logo ? <img src={team.logo} className="w-full h-full object-contain"/> : <Shield className="text-gray-300"/>}
                     </div>
-                    <div className="relative z-10 overflow-hidden">
+                    <div className="relative z-10 overflow-hidden pr-12">
                         <h1 className="text-xl md:text-2xl font-black text-white leading-none mb-1 truncate">{team.name}</h1>
                         <div className="flex items-center gap-2 text-[10px] md:text-xs font-bold text-pl-gray uppercase tracking-wider truncate">
                             <div className="w-1.5 h-1.5 md:w-2 md:h-2 bg-pl-cyan rounded-full animate-pulse shrink-0"></div>

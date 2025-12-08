@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
-import { Users, Calendar, LayoutGrid, Info } from 'lucide-react';
+import { Users, Calendar, LayoutGrid, Info, Heart } from 'lucide-react';
 
 export default function Navbar() {
   const location = useLocation();
@@ -65,6 +65,7 @@ export default function Navbar() {
             {DesktopNavItem('/', <LayoutGrid size={18} />, 'Dashboard')}
             {DesktopNavItem('/teams', <Users size={18} />, 'Clubs')}
             {DesktopNavItem('/matches', <Calendar size={18} />, 'Fixtures')}
+            {DesktopNavItem('/favorites', <Heart size={18} />, 'Favorites')}
             {DesktopNavItem('/about', <Info size={18} />, 'Creator')}
           </div>
         </div>
@@ -78,6 +79,7 @@ export default function Navbar() {
           {MobileNavItem('/', <LayoutGrid size={20} strokeWidth={2.5} />, 'Home')}
           {MobileNavItem('/teams', <Users size={20} strokeWidth={2.5} />, 'Clubs')}
           {MobileNavItem('/matches', <Calendar size={20} strokeWidth={2.5} />, 'Match')}
+          {MobileNavItem('/favorites', <Heart size={20} strokeWidth={2.5} />, 'Fav')}
           {MobileNavItem('/about', <Info size={20} strokeWidth={2.5} />, 'About')}
         </div>
         
