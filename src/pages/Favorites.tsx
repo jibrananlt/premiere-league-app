@@ -5,6 +5,13 @@ import { apiClient } from '../api/client';
 import LoadingSpinner from '../components/LoadingSpinner';
 import type { Team } from '../types';
 
+/**
+ * Favorites Page - Menampilkan daftar tim favorit pengguna
+ * Fitur:
+ * - Tampilkan semua tim yang di-favorite
+ * - Hapus tim dari favorites
+ * - Empty state jika belum ada favorites
+ */
 export default function Favorites() {
   const [favoriteTeams, setFavoriteTeams] = useState<Team[]>([]);
   const [loading, setLoading] = useState(true);
