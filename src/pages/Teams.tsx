@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Plus, MapPin, ArrowUpRight, X, Trash2, CheckCircle, AlertCircle } from 'lucide-react';
+import { Plus, MapPin, ArrowUpRight, X, Trash2, CheckCircle, AlertCircle, Heart } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { apiClient } from '../api/client';
 import LoadingSpinner from '../components/LoadingSpinner';
@@ -23,11 +23,16 @@ export default function Teams() {
     id: null,
     name: ''
   });
+  const [favorites, setFavorites] = useState<number[]>([]);
 
   useEffect(() => {
     apiClient.get('/teams')
       .then(res => setTeams(res.data))
       .finally(() => setTimeout(() => setLoading(false), 500));
+    
+    // Load favorites from localStorage
+    const storedFavorites = JSON.parse(localStorage.getItem('favoriteTeams') || '[]');
+    setFavorites(storedFavorites);
   }, []);
 
   // Auto dismiss notification
@@ -84,6 +89,23 @@ export default function Teams() {
     }
   };
 
+  const toggleFavorite = (e: React.MouseEvent, teamId: number) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    const newFavorites = favorites.includes(teamId)
+      ? favorites.filter(id => id !== teamId)
+      : [...favorites, teamId];
+    
+    setFavorites(newFavorites);
+    localStorage.setItem('favoriteTeams', JSON.stringify(newFavorites));
+    
+    setNotification({ 
+      type: 'success', 
+      message: favorites.includes(teamId) ? 'Removed from favorites!' : 'Added to favorites!' 
+    });
+  };
+
   if (loading) return <LoadingSpinner />;
 
   return (
@@ -116,6 +138,19 @@ export default function Teams() {
               
               <div className="relative bg-[#2c0030] h-full p-4 md:p-5 rounded-[calc(1rem-1px)] overflow-hidden flex flex-col items-center border border-white/5">
                 
+                {/* Favorite Button */}
+                <button 
+                  onClick={(e) => toggleFavorite(e, team.id)}
+                  className={`absolute top-2 left-2 z-20 p-1.5 rounded-full transition-all ${
+                    favorites.includes(team.id)
+                      ? 'bg-pink-500 text-white'
+                      : 'bg-black/40 text-white/50 hover:bg-pink-500/50 hover:text-white'
+                  }`}
+                  title={favorites.includes(team.id) ? 'Remove from favorites' : 'Add to favorites'}
+                >
+                  <Heart size={14} fill={favorites.includes(team.id) ? 'currentColor' : 'none'} />
+                </button>
+
                 {/* Delete Button */}
                 <button 
                   onClick={(e) => handleDeleteClick(e, team)}

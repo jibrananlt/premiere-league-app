@@ -4,7 +4,8 @@ import Home from './pages/Home';
 import Teams from './pages/Teams';
 import Matches from './pages/Matches';
 import TeamDetail from './pages/TeamDetail';
-import About from './pages/About'; // <-- Import halaman About
+import About from './pages/About';
+import Favorites from './pages/Favorites';
 
 function App() {
   return (
@@ -15,7 +16,8 @@ function App() {
         <Route path="/teams" element={<Teams />} />
         <Route path="/teams/:id" element={<TeamDetail />} />
         <Route path="/matches" element={<Matches />} />
-        <Route path="/about" element={<About />} /> {/* <-- Tambahkan Route */}
+        <Route path="/favorites" element={<Favorites />} />
+        <Route path="/about" element={<About />} />
       </Routes>
     </Router>
   );
